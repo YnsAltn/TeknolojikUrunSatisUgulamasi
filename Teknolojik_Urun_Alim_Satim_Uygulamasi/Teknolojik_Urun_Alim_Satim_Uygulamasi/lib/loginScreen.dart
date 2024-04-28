@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'anaSayfa.dart'; // anaSayfa.dart dosyasını import et
-
+import 'anaSayfa.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -99,9 +98,9 @@ class LoginScreen extends StatelessWidget {
                       onTap: () {
                         // Giriş butonuna basıldığında anaSayfa.dart sayfasına yönlendir
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AnaSayfa()),
-                        );
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AnaSayfa()));
                       },
                       child: Container(
                         height: 55,

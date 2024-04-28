@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'begendiklerim.dart';
+import 'loginScreen.dart';
+import 'detaySayfa.dart';
 void main() {
   runApp(MyApp());
 }
@@ -8,22 +9,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: AnaEkran(),
+      title: 'Teknoloji Ürünleri',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: MyHomePage(),
     );
   }
 }
 
-class AnaEkran extends StatefulWidget {
-  const AnaEkran({Key? key}) : super(key: key);
-
+class MyHomePage extends StatefulWidget {
   @override
-  State<AnaEkran> createState() => _AnaEkranState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _AnaEkranState extends State<AnaEkran> {
+class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
-  // Ürün verileri
   final List<String> urunler = [
     'Ürün 1',
     'Ürün 2',
@@ -35,7 +38,6 @@ class _AnaEkranState extends State<AnaEkran> {
     'Ürün 8',
   ];
 
-  // Ana ekran için sayfa listesi
   final List<Widget> _pages = [
     AnaSayfa(),
     Begendiklerim(),
@@ -48,12 +50,11 @@ class _AnaEkranState extends State<AnaEkran> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: Text('Alış-Veriş Uygulaması'),
+        title: const Text('Alış-Veriş Uygulaması'),
         leading: IconButton(
-          icon: Icon(Icons.menu),
+          icon: const Icon(Icons.menu),
           onPressed: () {
             // Sol menü ikonuna tıklama işlevi buraya eklenebilir
-
           },
         ),
         actions: [
@@ -92,7 +93,6 @@ class _AnaEkranState extends State<AnaEkran> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profil',
-
           ),
         ],
         backgroundColor: Colors.teal,
@@ -102,7 +102,6 @@ class _AnaEkranState extends State<AnaEkran> {
   }
 }
 
-// Ana sayfa ekranı
 class AnaSayfa extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -111,13 +110,21 @@ class AnaSayfa extends StatelessWidget {
         crossAxisCount: 2,
         children: List.generate(
           8,
-              (index) => Container(
-            margin: EdgeInsets.all(8),
-            color: Colors.blueGrey[200],
-            child: Center(
-              child: Text(
-                'Ürün ${index + 1}',
-                style: TextStyle(fontSize: 20),
+              (index) => InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => detaySayfa(index: index)),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              color: Colors.blueGrey[200],
+              child: Center(
+                child: Text(
+                  'Ürün ${index + 1}',
+                  style: const TextStyle(fontSize: 20),
+                ),
               ),
             ),
           ),
@@ -127,32 +134,47 @@ class AnaSayfa extends StatelessWidget {
   }
 }
 
-// Mesajlar ekranı
-class Mesajlar extends StatelessWidget {
+class detaySayfa extends StatelessWidget {
+  final int index;
+
+  const detaySayfa({Key? key, required this.index}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('Beğendiklerim'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Detay Sayfa'),
+      ),
+      body: Center(
+        child: Text('Detaylar için ürün $index'),
+      ),
     );
   }
 }
 
-// Profil ekranı
-class Profil extends StatelessWidget {
+class Mesajlar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Text('Mesajlar'),
     );
   }
 }
 
-// Beğendiklerim ekranı
+class Profil extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Profil'),
+    );
+  }
+}
+
 class Begendiklerim extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('Profil'),
+    return const Center(
+      child: Text('Beğendiklerim'),
     );
   }
 }
