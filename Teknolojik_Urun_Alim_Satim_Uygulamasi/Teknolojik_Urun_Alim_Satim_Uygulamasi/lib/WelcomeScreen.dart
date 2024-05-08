@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:untitled3/regScreen.dart';
 import 'loginScreen.dart';
+import 'main.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);

@@ -40,7 +40,7 @@ class _CustomNavigationMenuState extends State<CustomNavigationMenu> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Özel Navigasyon Menüsü'),
+        title: Text('Keşfet'),
         backgroundColor: Colors.red,
         actions: [
           IconButton(
@@ -61,7 +61,7 @@ class _CustomNavigationMenuState extends State<CustomNavigationMenu> {
             children: [
               DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Colors.red,
                 ),
                 child: Text(
                   'Filtreleme Ekranı',

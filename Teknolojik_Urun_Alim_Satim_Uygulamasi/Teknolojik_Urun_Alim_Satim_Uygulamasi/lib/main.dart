@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'unknown.dart';
-
+import 'WelcomeScreen.dart';
+import 'begendiklerim.dart';
 import 'anaSayfa.dart';
 //import 'anaSayfa.dart';
 import 'profilSayfa2.dart';
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         fontFamily: ('inter'),
         useMaterial3: true,
       ),
-      home: FavoritesPage(),
+      home: WelcomeScreen(),
     );
   }
 }

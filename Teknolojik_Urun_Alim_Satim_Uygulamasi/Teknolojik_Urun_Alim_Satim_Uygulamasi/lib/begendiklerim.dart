@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -13,7 +13,20 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
+  @override
+  _FavoritesPageState createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  int _selectedIndex = 2; // Varsayılan olarak favoriler sekmesini seçili olarak belirle
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,74 +40,119 @@ class FavoritesPage extends StatelessWidget {
         title: Text('Favoriler'),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
+            flex: 3,
             child: ListView.builder(
-              itemCount: 20, // Favorilenmiş ürünlerin sayısı
+              scrollDirection: Axis.horizontal,
+              itemCount: 5, // Favorilenmiş ürünlerin sayısı (üst kısım)
               itemBuilder: (context, index) {
-                return FavoriteItem();
+                return Padding(
+                  padding: EdgeInsets.all(8),
+                  child: FavoriteItem(isLarge: true),
+                );
               },
             ),
           ),
-          Container(
-            padding: EdgeInsets.all(16),
-            color: Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Favoriden kaldırma işlemi
-                  },
-                  child: Text('Favorilerden Kaldır'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Paylaşma işlemi
-                  },
-                  child: Text('Paylaş'),
-                ),
-              ],
+          Expanded(
+            flex: 1,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 10, // Favorilenmiş ürünlerin sayısı (alt kısım)
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.all(8),
+                  child: FavoriteItem(isLarge: false),
+                );
+              },
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.red, // navigation bar arka plan rengi
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.red, // navigation bar arka plan rengi
+          selectedItemColor: Colors.yellow, // seçili öğelerin ikon ve metin rengi
+          unselectedItemColor: Colors.white, // seçili olmayan öğelerin ikon ve metin rengi
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
+            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Keşfet'),
+            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoriler'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+          ],
+        ),
       ),
     );
   }
 }
 
 class FavoriteItem extends StatelessWidget {
+  final bool isLarge;
+
+  const FavoriteItem({required this.isLarge});
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.symmetric(vertical: 8),
-      color: Colors.white,
+      width: isLarge ? MediaQuery.of(context).size.width * 0.75 : 80, // Ürün kartının genişliği
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Ürün Adı',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                'https://via.placeholder.com/300', // Ürün resminin URL'si
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          SizedBox(height: 8),
-          Text(
-            'Ürün Açıklaması',
-            style: TextStyle(fontSize: 16),
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ürün Adı',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  isLarge ? 'Ürün Açıklaması' : '\$99.99', // Ürün açıklaması (üst kısım) veya fiyatı (alt kısım)
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 8),
-          Text(
-            '\$99.99', // Ürün fiyatı
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          // Ürün resmi
-          Image.network(
-            'https://via.placeholder.com/150', // Ürün resminin URL'si
-            width: double.infinity,
-            height: 200,
-            fit: BoxFit.cover,
-          ),
+          if (isLarge)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.favorite),
+                  onPressed: () {
+                    // Favoriden kaldırma işlemi
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.share),
+                  onPressed: () {
+                    // Paylaşma işlemi
+                  },
+                ),
+              ],
+            ),
         ],
       ),
     );
