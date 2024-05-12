@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.1 # Buradaki versiyon numarası güncel olabilir, projenizin ihtiyacına göre ayarlayın.
+  image_picker: ^0.8.4+4
 
 
   # The following adds the Cupertino Icons font to your application.

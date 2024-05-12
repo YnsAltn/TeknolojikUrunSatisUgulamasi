@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'WelcomeScreen.dart';
 import 'begendiklerim.dart';
 import 'anaSayfa.dart';
-//import 'anaSayfa.dart';
 import 'profilSayfa2.dart';
+import 'urunEkleme.dart';
+
 void main() {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
