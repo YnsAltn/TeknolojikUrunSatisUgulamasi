@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'anaSayfa.dart';
-import 'main.dart';
-import 'package:untitled3/WelcomeScreen.dart';
 import 'forgotPassword.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -114,7 +112,7 @@ class LoginScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AnaSayfa(),
+                            builder: (context) => MyHomePage(),
                           ),
                         );
                       },

@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         fontFamily: ('inter'),
         useMaterial3: true,
       ),
-      home: WelcomeScreen(),
+      home: UrunEklemeFormu(),
     );
   }
 }

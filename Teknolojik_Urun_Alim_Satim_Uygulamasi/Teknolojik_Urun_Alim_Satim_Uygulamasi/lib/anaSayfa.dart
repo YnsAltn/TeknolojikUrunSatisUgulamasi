@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'loginScreen.dart';
-import 'detaySayfa.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -11,8 +10,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Teknoloji Ürünleri',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
+        primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: Colors.grey[200],
       ),
       home: MyHomePage(),
     );
@@ -26,58 +25,155 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<String> urunler = [
-    'Ürün 1',
-    'Ürün 2',
-    'Ürün 3',
-    'Ürün 4',
-    'Ürün 5',
-    'Ürün 6',
-    'Ürün 7',
-    'Ürün 8',
+  final List<Map<String, String>> urunler = [
+    {'isim': 'Ürün 1', 'fiyat': '100 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 2', 'fiyat': '200 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 3', 'fiyat': '300 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 4', 'fiyat': '400 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 5', 'fiyat': '500 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 6', 'fiyat': '600 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 7', 'fiyat': '700 TL', 'resim': 'https://via.placeholder.com/150'},
+    {'isim': 'Ürün 8', 'fiyat': '800 TL', 'resim': 'https://via.placeholder.com/150'},
   ];
 
-  final List<Widget> _pages = [
-    AnaSayfa(),
-    Begendiklerim(),
-    Mesajlar(),
-    Profil(),
-  ];
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: Colors.teal,
-        title: const Text('Alış-Veriş Uygulaması'),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Arama...',
+            border: InputBorder.none,
+          ),
+        )
+            : Text('Alış-Veriş Uygulaması'),
         leading: IconButton(
-          icon: const Icon(Icons.menu),
+          icon: Icon(Icons.filter_list),
           onPressed: () {
-            // Sol menü ikonuna tıklama işlevi buraya eklenebilir
+            _scaffoldKey.currentState?.openDrawer();
           },
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Arama ikonuna tıklama işlevi buraya eklenebilir
-            },
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: _toggleSearch,
           ),
         ],
+        backgroundColor: Colors.teal,
       ),
-      body: _pages[_selectedIndex],
-      backgroundColor: Colors.grey,
+      drawer: Drawer(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.6,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                child: Text('Filtreleme Seçenekleri'),
+                decoration: BoxDecoration(
+                  color: Colors.teal,
+                ),
+              ),
+              ListTile(
+                title: Text('Fiyat Aralığı'),
+                onTap: () {
+                  // Fiyat aralığı filtresi işlevi buraya eklenecek
+                },
+              ),
+              ListTile(
+                title: Text('Kategori'),
+                onTap: () {
+                  // Kategori filtresi işlevi buraya eklenecek
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xffB10000),
+              Color(0xff281537),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: GridView.builder(
+          padding: EdgeInsets.all(8.0),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
+            childAspectRatio: 0.7,
+          ),
+          itemCount: urunler.length,
+          itemBuilder: (context, index) {
+            final urun = urunler[index];
+            return Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      urun['resim']!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          urun['isim']!,
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4.0),
+                        Text(
+                          urun['fiyat']!,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.red[600],
-        unselectedItemColor: Colors.black,
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Ana Sayfa',
@@ -95,86 +191,12 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Profil',
           ),
         ],
-        backgroundColor: Colors.teal,
-        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.white,
       ),
-    );
-  }
-}
-
-class AnaSayfa extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: GridView.count(
-        crossAxisCount: 2,
-        children: List.generate(
-          8,
-              (index) => InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => detaySayfa(index: index)),
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              color: Colors.blueGrey[200],
-              child: Center(
-                child: Text(
-                  'Ürün ${index + 1}',
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class detaySayfa extends StatelessWidget {
-  final int index;
-
-  const detaySayfa({Key? key, required this.index}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Detay Sayfa'),
-      ),
-      body: Center(
-        child: Text('Detaylar için ürün $index'),
-      ),
-    );
-  }
-}
-
-class Mesajlar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Mesajlar'),
-    );
-  }
-}
-
-class Profil extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Profil'),
-    );
-  }
-}
-
-class Begendiklerim extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Beğendiklerim'),
     );
   }
 }
