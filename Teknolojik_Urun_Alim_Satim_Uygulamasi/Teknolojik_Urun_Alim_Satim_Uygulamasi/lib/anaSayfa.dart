@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'begendiklerim.dart';
+import 'profilSayfa2.dart';
+import 'forgotPassword.dart';
+import 'urunEkleme.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Teknoloji Ürünleri',
       theme: ThemeData(
         primarySwatch: Colors.teal,
-        scaffoldBackgroundColor: Colors.grey[200],
+        scaffoldBackgroundColor: Color(0xffF4F4F4), // Arka plan rengi
       ),
       home: MyHomePage(),
     );
@@ -25,19 +29,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  bool _isSearching = false;
-  TextEditingController _searchController = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<Map<String, String>> urunler = [
-    {'isim': 'Ürün 1', 'fiyat': '100 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 2', 'fiyat': '200 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 3', 'fiyat': '300 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 4', 'fiyat': '400 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 5', 'fiyat': '500 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 6', 'fiyat': '600 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 7', 'fiyat': '700 TL', 'resim': 'https://via.placeholder.com/150'},
-    {'isim': 'Ürün 8', 'fiyat': '800 TL', 'resim': 'https://via.placeholder.com/150'},
+  final List<Map<String, String>> products = [
+    {'name': 'Ürün 1', 'price': '100 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 2', 'price': '200 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 3', 'price': '300 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 4', 'price': '400 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 5', 'price': '500 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 6', 'price': '600 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 7', 'price': '700 TL', 'image': 'https://via.placeholder.com/150'},
+    {'name': 'Ürün 8', 'price': '800 TL', 'image': 'https://via.placeholder.com/150'},
   ];
 
   void _onItemTapped(int index) {
@@ -46,29 +48,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchController.clear();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Arama...',
-            border: InputBorder.none,
-          ),
-        )
-            : Text('Alış-Veriş Uygulaması'),
+        title: Text('Alış-Veriş Uygulaması'),
         leading: IconButton(
           icon: Icon(Icons.filter_list),
           onPressed: () {
@@ -77,11 +62,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: _toggleSearch,
+            icon: Icon(Icons.search),
+            onPressed: () {},
           ),
         ],
-        backgroundColor: Colors.teal,
+        backgroundColor: Color(0xffB10000), // AppBar rengi
       ),
       drawer: Drawer(
         child: Container(
@@ -92,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
               DrawerHeader(
                 child: Text('Filtreleme Seçenekleri'),
                 decoration: BoxDecoration(
-                  color: Colors.teal,
+                  color: Color(0xff5C1635), // DrawerHeader arka plan rengi
                 ),
               ),
               ListTile(
@@ -115,8 +100,8 @@ class _MyHomePageState extends State<MyHomePage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB10000),
-              Color(0xff281537),
+              Color(0xffB10000), // Koyu Kırmızı
+              Color(0xff281537), // Siyah
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -130,43 +115,50 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisSpacing: 8.0,
             childAspectRatio: 0.7,
           ),
-          itemCount: urunler.length,
+          itemCount: products.length,
           itemBuilder: (context, index) {
-            final urun = urunler[index];
-            return Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Image.network(
-                      urun['resim']!,
-                      fit: BoxFit.cover,
+            final product = products[index];
+            return GestureDetector(
+              onTap: () {
+                // Ürün detay sayfasına geçiş işlemi burada gerçekleştirilecek
+              },
+              child: Card(
+                color: Color(0xffF4F4F4), // Card arka plan rengi
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: Image.network(
+                        product['image']!,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          urun['isim']!,
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product['name']!,
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff0F1A2F), // Başlık rengi
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4.0),
-                        Text(
-                          urun['fiyat']!,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey[600],
+                          SizedBox(height: 4.0),
+                          Text(
+                            product['price']!,
+                            style: TextStyle(
+                              fontSize: 14.0,
+                              color: Colors.grey[600], // Metin rengi
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -192,10 +184,37 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.teal,
+        selectedItemColor: Color(0xffB10000), // Seçili öğe rengi
         unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.white,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          switch (index) {
+            case 0:
+            // Ana sayfaya git
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FavoritesPage()),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UrunEklemeFormu()),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage()),
+              );
+              break;
+          }
+        },
+        backgroundColor: Color(0xffF4F4F4), // BottomNavigationBar arka plan rengi
       ),
     );
   }

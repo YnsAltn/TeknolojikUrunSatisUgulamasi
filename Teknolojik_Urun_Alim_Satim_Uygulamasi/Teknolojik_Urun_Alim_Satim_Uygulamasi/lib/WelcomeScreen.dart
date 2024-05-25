@@ -4,7 +4,9 @@ import 'loginScreen.dart';
 import 'main.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  final String uid;
+
+  const WelcomeScreen({Key? key, required this.uid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +17,11 @@ class WelcomeScreen extends StatelessWidget {
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [
-                Color(0xffB81736),
-                Color(0xff281537),
-              ])),
+            gradient: LinearGradient(colors: [
+              Color(0xffB81736),
+              Color(0xff281537),
+            ]),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -27,22 +30,18 @@ class WelcomeScreen extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 20.0),
                 child: Image(image: AssetImage('assets/icons/Giris_İcon.png')),
               ),
-              const SizedBox(
-                height: 50,
-              ),
+              const SizedBox(height: 50),
               const Text(
                 'Hoşgeldiniz',
                 style: TextStyle(fontSize: 30, color: Colors.white),
               ),
-              const SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginScreen()));
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
                 },
                 child: Container(
                   height: 53,
@@ -52,24 +51,24 @@ class WelcomeScreen extends StatelessWidget {
                     border: Border.all(color: Colors.white),
                   ),
                   child: const Center(
-
                     child: Text(
                       'GİRİŞ YAP',
                       style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const RegScreen()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegScreen()),
+                  );
                 },
                 child: Container(
                   height: 53,
@@ -83,9 +82,10 @@ class WelcomeScreen extends StatelessWidget {
                     child: Text(
                       'KAYIT OL',
                       style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),

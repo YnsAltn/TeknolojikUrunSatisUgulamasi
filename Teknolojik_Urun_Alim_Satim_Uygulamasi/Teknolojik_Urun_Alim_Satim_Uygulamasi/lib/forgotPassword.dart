@@ -1,7 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
+
+  @override
+  _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  Future<void> _resetPassword() async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+      ));
+    }
+  }
+
+  Future<void> _updatePassword() async {
+    if (_newPasswordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Şifreler uyuşmuyor'),
+      ));
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.confirmPasswordReset(
+        code: _emailController.text, // Buraya mail kodunu almak için bir yöntem gerekebilir
+        newPassword: _newPasswordController.text,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Şifreniz başarıyla güncellendi.'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString()),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,72 +95,52 @@ class ForgotPasswordScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextField(
-                      decoration: InputDecoration(
-                        suffixIcon: const Icon(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(
                           Icons.check,
                           color: Colors.grey,
                         ),
                         labelText: 'Gmail',
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xffB81736),
+                          color: Color(0xffB81736),
                         ),
                       ),
                     ),
                     TextField(
-                      decoration: InputDecoration(
-                        suffixIcon: const Icon(
+                      controller: _newPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(
                           Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         labelText: 'Yeni Şifre',
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xffB81736),
+                          color: Color(0xffB81736),
                         ),
                       ),
                     ),
                     TextField(
-                      decoration: InputDecoration(
-                        suffixIcon: const Icon(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        suffixIcon: Icon(
                           Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         labelText: 'Şifreyi Tekrar Yazın',
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xffB81736),
+                          color: Color(0xffB81736),
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Mail Kodu',
-                              labelStyle: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xffB81736),
-                              ),
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Mail kodu gönderme işlemi
-                          },
-                          child: const Text('Kod Gönder'),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     GestureDetector(
-                      onTap: () {
-                        // Şifre yenileme işlemi gerçekleştirilecek
-                      },
+                      onTap: _resetPassword,
                       child: Container(
                         height: 55,
                         width: 300,
@@ -124,7 +152,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                         ),
                         child: const Center(
                           child: Text(
-                            'ŞİFREYİ YENİLE',
+                            'ŞİFREYİ SIFIRLA',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 25,
@@ -134,6 +162,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
                     const SizedBox(
                       height: 150,
                     ),
