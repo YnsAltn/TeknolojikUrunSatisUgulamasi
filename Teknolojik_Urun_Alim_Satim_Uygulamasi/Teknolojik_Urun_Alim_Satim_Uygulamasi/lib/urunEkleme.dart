@@ -1,115 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'profilSayfa2.dart';
+import 'begendiklerim.dart'; // Beğendiklerim sayfası
+import 'anaSayfa.dart';
+import 'navigationbar.dart'; // Bottom Navigation Bar
 
 void main() {
   runApp(MaterialApp(
-    home: MyHomePage(),
+    home: UrunEklemeFormu(),
   ));
-}
-
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _selectedIndex = 0;
-
-  final List<String> categories = [
-    'Telefon',
-    'Laptop',
-    'Tablet',
-    'Monitör',
-    'Drone',
-    'Fotoğraf Makinesi',
-    'Televizyon'
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Ürün Kategorileri'),
-        backgroundColor: Colors.teal,
-      ),
-      body: ListView.builder(
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(
-              categories[index],
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            trailing: Icon(Icons.arrow_forward),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => KategoriSayfasi(
-                    kategori: categories[index],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Ana Sayfa',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Ürün Ekle',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.teal,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => UrunEklemeFormu()),
-            );
-          }
-        },
-      ),
-    );
-  }
-}
-
-class KategoriSayfasi extends StatelessWidget {
-  final String kategori;
-
-  KategoriSayfasi({required this.kategori});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('$kategori Kategorisi'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Center(
-        child: Text(
-          '$kategori ürünleri burada listelenecek.',
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-  }
 }
 
 class UrunEklemeFormu extends StatefulWidget {
@@ -119,7 +22,6 @@ class UrunEklemeFormu extends StatefulWidget {
 
 class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
   final _formKey = GlobalKey<FormState>();
-
   String? _selectedCategory;
   final List<String> _categories = [
     'Telefon',
@@ -128,35 +30,30 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
     'Monitör',
     'Drone',
     'Fotoğraf Makinesi',
-    'Televizyon'
+    'Diğer'
   ];
-
-  List<String> _subCategories = [];
-  String? _selectedSubCategory;
-  final Map<String, List<String>> _categoryMap = {
-    'Telefon': ['Akıllı Telefon', 'Klasik Telefon'],
-    'Laptop': ['Oyun Laptopu', 'İş Laptopu', 'Ultra Taşınabilir'],
-    'Tablet': ['Android Tablet', 'iOS Tablet'],
-    'Monitör': ['LCD', 'LED', 'OLED'],
-    'Drone': ['Kamera Drone', 'Yarış Drone'],
-    'Fotoğraf Makinesi': ['DSLR', 'Mirrorless', 'Kompakt'],
-    'Televizyon': ['LED TV', 'OLED TV', 'QLED TV']
-  };
-
-  List<XFile> images = <XFile>[];
+  String? _brand;
+  final TextEditingController _featureController = TextEditingController();
+  final List<String> _features = [];
+  String? _description;
+  List<XFile> images = [];
   final ImagePicker _picker = ImagePicker();
+  String? _contactNumber;
+  String? _price;
+  int _selectedIndex = 2;
 
-  Future<void> _pickImageFromGallery() async {
-    final pickedFiles = await _picker.pickMultiImage();
-    if (pickedFiles != null) {
+  void _addFeature() {
+    final feature = _featureController.text;
+    if (feature.isNotEmpty) {
       setState(() {
-        images.addAll(pickedFiles);
+        _features.add(feature);
       });
+      _featureController.clear();
     }
   }
 
-  Future<void> _pickImageFromCamera() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         images.add(pickedFile);
@@ -170,20 +67,62 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
     });
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() && images.isNotEmpty) {
-      // Ürün bilgilerini ve resimlerini kaydedin veya işleyin
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ürün başarıyla eklendi')),
-      );
+      try {
+        final userId = FirebaseAuth.instance.currentUser!.uid;
+        final productRef = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('products')
+            .add({
+          'category': _selectedCategory,
+          'brand': _brand,
+          'features': _features,
+          'description': _description,
+          'contactNumber': _contactNumber,
+          'price': _price,
+        });
 
-      // Formu sıfırla
-      _formKey.currentState!.reset();
-      setState(() {
-        _selectedCategory = null;
-        _selectedSubCategory = null;
-        images.clear();
-      });
+        final productId = productRef.id;
+        await Future.forEach(images, (XFile image) async {
+          final imageName = DateTime.now().millisecondsSinceEpoch.toString();
+          final uploadTask = FirebaseStorage.instance
+              .ref('users/$userId/products/$productId/$imageName')
+              .putFile(File(image.path));
+          await uploadTask.whenComplete(() async {
+            final imageUrl = await uploadTask.snapshot.ref.getDownloadURL();
+            // Ürün belgesine resim URL'sini ekle
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .collection('products')
+                .doc(productId)
+                .update({
+              'imageUrls': FieldValue.arrayUnion([imageUrl]),
+            });
+          });
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ürün başarıyla eklendi')),
+        );
+
+        _formKey.currentState!.reset();
+        setState(() {
+          _selectedCategory = null;
+          _brand = null;
+          _features.clear();
+          _description = null;
+          images.clear();
+          _contactNumber = null;
+          _price = null;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ürün eklenirken bir hata oluştu')),
+        );
+      }
     } else if (images.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lütfen en az bir resim seçin')),
@@ -193,12 +132,10 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
 
   Widget _buildGridView() {
     return GridView.builder(
+      shrinkWrap: true,
       itemCount: images.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-      ),
+      gridDelegate:
+          SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
       itemBuilder: (context, index) {
         return Stack(
           children: [
@@ -222,11 +159,40 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
     );
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyHomePage()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FavoritesPage()),
+        );
+        break;
+      case 2:
+        // Şu anki sayfada zaten olduğumuz için herhangi bir işlem yapmamıza gerek yok.
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage()),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ürün Ekle'),
+        title: Text('Ürün Ekleme Formu'),
         backgroundColor: Colors.teal,
       ),
       body: Padding(
@@ -235,73 +201,144 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
           key: _formKey,
           child: ListView(
             children: [
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Kategori'),
-                value: _selectedCategory,
-                items: _categories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCategory = newValue;
-                    _subCategories = _categoryMap[_selectedCategory!] ?? [];
-                    _selectedSubCategory = null;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen bir kategori seçin';
-                  }
-                  return null;
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: 'Kategori'),
+                      value: _selectedCategory,
+                      items: _categories.map((String category) {
+                        return DropdownMenuItem<String>(
+                          value: category,
+                          child: Text(category),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedCategory = newValue;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Lütfen bir kategori seçin';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Marka',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _brand = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Lütfen bir marka girin';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
-              if (_subCategories.isNotEmpty)
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Alt Kategori'),
-                  value: _selectedSubCategory,
-                  items: _subCategories.map((String subCategory) {
-                    return DropdownMenuItem<String>(
-                      value: subCategory,
-                      child: Text(subCategory),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedSubCategory = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Lütfen bir alt kategori seçin';
-                    }
-                    return null;
-                  },
-                ),
               SizedBox(height: 16),
               TextFormField(
+                controller: _featureController,
                 decoration: InputDecoration(
-                  labelText: 'Ürün Adı',
+                  labelText: 'ÖzellikEkle',
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: _addFeature,
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen bir ürün adı girin';
-                  }
-                  return null;
-                },
               ),
+              SizedBox(height: 16),
+              if (_features.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _features.map((feature) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(
+                        feature,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }).toList(),
+                ),
               SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Açıklama',
                   border: OutlineInputBorder(),
                 ),
+                maxLines: 4,
+                onChanged: (value) {
+                  setState(() {
+                    _description = value;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Lütfen bir açıklama girin';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              if (images.isNotEmpty)
+                Container(
+                  height: 200,
+                  child: _buildGridView(),
+                ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                      icon: Icon(Icons.photo_library),
+                      label: Text('Galeriden Resim Seç'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.camera),
+                      icon: Icon(Icons.camera_alt),
+                      label: Text('Kamera ile Resim Çek'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'İletişim Numarası',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _contactNumber = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen bir iletişim numarası girin';
                   }
                   return null;
                 },
@@ -312,38 +349,17 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
                   labelText: 'Fiyat',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  setState(() {
+                    _price = value;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Lütfen bir fiyat girin';
                   }
                   return null;
                 },
-              ),
-              SizedBox(height: 16),
-              images.isNotEmpty
-                  ? Container(
-                height: 200,
-                child: _buildGridView(),
-              )
-                  : Container(),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _pickImageFromGallery,
-                icon: Icon(Icons.photo_library),
-                label: Text('Galeriden Resim Seç'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                ),
-              ),
-              SizedBox(height: 8),
-              ElevatedButton.icon(
-                onPressed: _pickImageFromCamera,
-                icon: Icon(Icons.camera_alt),
-                label: Text('Kamera ile Resim Çek'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                ),
               ),
               SizedBox(height: 16),
               ElevatedButton(
@@ -356,6 +372,10 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }

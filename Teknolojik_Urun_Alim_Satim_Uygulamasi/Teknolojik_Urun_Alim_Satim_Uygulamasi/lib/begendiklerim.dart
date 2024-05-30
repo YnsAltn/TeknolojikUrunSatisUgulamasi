@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'profilSayfa2.dart';
+import 'begendiklerim.dart'; // Beğendiklerim sayfası
+import 'anaSayfa.dart';
+import 'urunEkleme.dart';
+import 'navigationbar.dart'; // Bottom Navigation Bar
 
 void main() {
   runApp(MyApp());
@@ -19,12 +24,35 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  int _selectedIndex = 2; // Varsayılan olarak favoriler sekmesini seçili olarak belirle
+  int _selectedIndex = 1; // Varsayılan olarak favoriler sekmesini seçili olarak belirle
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    switch (index) {
+      case 0:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyHomePage()),
+        );
+        break;
+      case 1:
+      // Zaten bu sayfadasın, bir şey yapmaya gerek yok
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UrunEklemeFormu()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage()),
+        );
+        break;
+    }
   }
 
   @override
@@ -61,24 +89,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.red, // navigation bar arka plan rengi
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.red, // navigation bar arka plan rengi
-          selectedItemColor: Colors.yellow, // seçili öğelerin ikon ve metin rengi
-          unselectedItemColor: Colors.white, // seçili olmayan öğelerin ikon ve metin rengi
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Ana Sayfa'),
-            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Keşfet'),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoriler'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }
@@ -191,7 +204,7 @@ class _FavoriteItemState extends State<FavoriteItem> {
           Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              '\Laptop', // Ürün ismi
+              'Laptop', // Ürün ismi
               style: TextStyle(fontSize: 14),
             ),
           ),

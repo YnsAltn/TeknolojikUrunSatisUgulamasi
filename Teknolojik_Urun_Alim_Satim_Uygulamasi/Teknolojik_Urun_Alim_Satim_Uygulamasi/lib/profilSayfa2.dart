@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
-import 'profilSayfa.dart';
+import 'profilSayfa2.dart';
+import 'begendiklerim.dart'; // Beğendiklerim sayfası
+import 'urunEkleme.dart';
+import 'anaSayfa.dart';
+import 'navigationbar.dart'; // Bottom Navigation Bar
 
 void main() {
   runApp(MyApp());
@@ -15,7 +19,43 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  int _selectedIndex = 3; // Varsayılan olarak profil sekmesini seçili olarak belirle
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyHomePage()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FavoritesPage()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UrunEklemeFormu()),
+        );
+        break;
+      case 3:
+      // Zaten Profil sayfasındayız, başka bir işlem yapmaya gerek yok
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +106,10 @@ class ProfilePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }
