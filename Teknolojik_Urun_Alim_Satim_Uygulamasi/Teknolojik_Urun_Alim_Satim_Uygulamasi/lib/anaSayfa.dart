@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'detaySayfa.dart';
-import 'navigationbar.dart';
-import 'begendiklerim.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'profilSayfa2.dart';
 import 'urunEkleme.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'begendiklerim.dart';
+import 'navigationbar.dart'; // Navigation bar widget'ı içeri aktarın
+import 'detaySayfa.dart'; // Detay sayfası için import edin
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -13,17 +13,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _selectedIndex = 0;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<List<String>> _getImageUrls(List<String> paths) async {
-    List<String> urls = [];
-    for (String path in paths) {
-      final url = await FirebaseStorage.instance.ref(path).getDownloadURL();
-      urls.add(url);
-    }
-    return urls;
-  }
+  int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -31,7 +24,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     switch (index) {
       case 0:
-        // Ana sayfada kal
+      // Ana sayfada kal
         break;
       case 1:
         Navigator.push(
@@ -57,19 +50,20 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Alış-Veriş Uygulaması'),
         leading: IconButton(
           icon: Icon(Icons.filter_list),
           onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
+            // Filtreleme işlevi buraya eklenecek
           },
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              // Arama işlevi buraya eklenecek
+            },
           ),
         ],
         backgroundColor: Color(0xffB10000), // AppBar rengi
@@ -103,6 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: Container(
+        padding: EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -114,9 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collectionGroup('products')
-              .snapshots(),
+          stream: FirebaseFirestore.instance.collectionGroup('products').snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
@@ -128,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
             final products = snapshot.data!.docs;
 
             return GridView.builder(
-              padding: EdgeInsets.all(8.0),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 8.0,
@@ -140,89 +132,58 @@ class _MyHomePageState extends State<MyHomePage> {
                 final product = products[index];
                 final productData = product.data() as Map<String, dynamic>;
 
-                final imagePaths =
-                    List<String>.from(productData['imagePaths'] ?? []);
-
-                return FutureBuilder<List<String>>(
-                  future: _getImageUrls(imagePaths),
-                  builder: (context, imageSnapshot) {
-                    if (imageSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    if (!imageSnapshot.hasData) {
-                      return Center(child: Text('Resim yüklenemedi'));
-                    }
-
-                    final imageUrls = imageSnapshot.data!;
-                    final firstImageUrl =
-                        imageUrls.isNotEmpty ? imageUrls.first : '';
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                UrunDetaySayfasi(product: product),
-                          ),
-                        );
-                      },
-                      child: Card(
-                        color: Color(0xffF4F4F4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: firstImageUrl.isNotEmpty
-                                  ? Image.network(
-                                      firstImageUrl,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.asset(
-                                      'assets/profile_image.png',
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    productData['name'] ?? 'Ürün Adı Yok',
-                                    style: TextStyle(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xff0F1A2F),
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  Text(
-                                    productData['brand'] ?? 'Marka Yok',
-                                    style: TextStyle(
-                                      fontSize: 14.0,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  Text(
-                                    productData['price'] != null
-                                        ? '${productData['price']} TL'
-                                        : 'Fiyat Yok',
-                                    style: TextStyle(
-                                      fontSize: 14.0,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                return GestureDetector(
+                  onTap: () {
+                    _navigateToProductDetail(product);
                   },
+                  child: Card(
+                    color: Color(0xffF4F4F4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: getImageWidget(productData),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                productData['name'] ?? 'Ürün Adı Yok',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff0F1A2F),
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                productData['brand'] ?? 'Marka Yok',
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                productData['price'] != null
+                                    ? '${productData['price']} TL'
+                                    : 'Fiyat Yok',
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             );
@@ -232,6 +193,30 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBarWidget(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
+      ),
+    );
+  }
+
+  Widget getImageWidget(Map<String, dynamic> productData) {
+    final List<String> imageUrls = productData.containsKey('imageUrls')
+        ? List<String>.from(productData['imageUrls'])
+        : [];
+    return imageUrls.isNotEmpty
+        ? Image.network(
+      imageUrls.first,
+      fit: BoxFit.cover,
+    )
+        : Container(
+      color: Colors.grey,
+      child: Icon(Icons.image, color: Colors.white),
+    );
+  }
+
+  void _navigateToProductDetail(QueryDocumentSnapshot product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UrunDetaySayfasi(product: product),
       ),
     );
   }

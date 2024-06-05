@@ -67,6 +67,12 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
     });
   }
 
+  void _removeFeature(int index) {
+    setState(() {
+      _features.removeAt(index);
+    });
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() && images.isNotEmpty) {
       try {
@@ -82,9 +88,12 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
           'description': _description,
           'contactNumber': _contactNumber,
           'price': _price,
+          'imageUrls': [],
         });
 
         final productId = productRef.id;
+        List<String> imageUrls = [];
+
         await Future.forEach(images, (XFile image) async {
           final imageName = DateTime.now().millisecondsSinceEpoch.toString();
           final uploadTask = FirebaseStorage.instance
@@ -92,16 +101,17 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
               .putFile(File(image.path));
           await uploadTask.whenComplete(() async {
             final imageUrl = await uploadTask.snapshot.ref.getDownloadURL();
-            // Ürün belgesine resim URL'sini ekle
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .collection('products')
-                .doc(productId)
-                .update({
-              'imageUrls': FieldValue.arrayUnion([imageUrl]),
-            });
+            imageUrls.add(imageUrl);
           });
+        });
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('products')
+            .doc(productId)
+            .update({
+          'imageUrls': imageUrls,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -177,7 +187,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
         );
         break;
       case 2:
-        // Şu anki sayfada zaten olduğumuz için herhangi bir işlem yapmamıza gerek yok.
+// Şu anki sayfada zaten olduğumuz için herhangi bir işlem yapmamıza gerek yok.
         break;
       case 3:
         Navigator.pushReplacement(
@@ -192,8 +202,8 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ürün Ekleme Formu'),
-        backgroundColor: Colors.teal,
+        title: Center(child: Text('Ürün Ekleme')),
+        backgroundColor: Color(0xffB10000),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -230,7 +240,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
                   Expanded(
                     child: TextFormField(
                       decoration: InputDecoration(
-                        labelText: 'Marka',
+                        labelText: 'Marka-Model',
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) {
@@ -252,7 +262,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
               TextFormField(
                 controller: _featureController,
                 decoration: InputDecoration(
-                  labelText: 'ÖzellikEkle',
+                  labelText: 'Özellik Ekle',
                   border: OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.add),
@@ -264,15 +274,27 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
               if (_features.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _features.map((feature) {
+                  children: List.generate(_features.length, (index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        feature,
-                        style: TextStyle(fontSize: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _features[index],
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.cancel),
+                            onPressed: () {
+                              _removeFeature(index);
+                            },
+                          ),
+                        ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ),
               SizedBox(height: 16),
               TextFormField(
