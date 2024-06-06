@@ -191,7 +191,7 @@ class _UrunDetaySayfasiState extends State<UrunDetaySayfasi> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List<Widget>.from(
                   (productData['features'] as List).map<Widget>(
-                    (feature) => Text('- $feature'),
+                        (feature) => Text('- $feature'),
                   ),
                 ),
               ),
