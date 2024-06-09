@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'main.dart';
-import 'profilSayfa2.dart';
 import 'begendiklerim.dart'; // Beğendiklerim sayfası
 import 'urunEkleme.dart';
 import 'anaSayfa.dart';
@@ -8,7 +10,7 @@ import 'navigationbar.dart'; // Bottom Navigation Bar
 import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication eklendi
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore eklendi
 import 'urunlerim.dart';
-
+import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage eklendi
 void main() {
   runApp(MyApp());
 }
@@ -30,29 +32,46 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  int _selectedIndex = 3; // Varsayılan olarak profil sekmesini seçili olarak belirle
-
+  int _selectedIndex = 3;
   TextEditingController _nameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
+  File? _imageFile;
 
   @override
   void initState() {
     super.initState();
-    // Kullanıcı verilerini çek ve ilgili controller'lara ata
-    _nameController.text = _auth.currentUser!.displayName ?? '';
-    _phoneController.text = ''; // Telefon numarası Firestore'dan alınacak
-    _emailController.text = _auth.currentUser!.email ?? '';
+    _getUserDisplayName();
     _getUserPhoneNumber();
+    _emailController.text = _auth.currentUser!.email ?? '';
+  }
+
+  void _getUserDisplayName() async {
+    setState(() {
+      _nameController.text = _auth.currentUser!.displayName ?? '';
+    });
   }
 
   void _getUserPhoneNumber() async {
-    // Firestore'dan telefon numarasını al
     DocumentSnapshot doc =
-    await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+        await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
     setState(() {
       _phoneController.text = doc['phoneNumber'] ?? '';
+    });
+  }
+
+  Future<void> _getImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _imageFile = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
     });
   }
 
@@ -80,27 +99,28 @@ class _ProfilePageState extends State<ProfilePage> {
         );
         break;
       case 3:
-      // Zaten Profil sayfasındayız, başka bir işlem yapmaya gerek yok
         break;
     }
   }
 
-  void _updateProfileInfo() async {
-    // Kullanıcının adını Firestore'da güncelle
+  Future<void> _updateProfileInfo() async {
     await _auth.currentUser!.updateDisplayName(_nameController.text);
-    // Kullanıcının telefon numarasını Firestore'da güncelle
-    await _firestore
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .update({'phoneNumber': _phoneController.text});
+    await _firestore.collection('users').doc(_auth.currentUser!.uid).update(
+        {'phoneNumber': _phoneController.text, 'name': _nameController.text});
+
+    if (_imageFile != null) {
+      final Reference storageRef =
+          _storage.ref().child('profile_photos/${_auth.currentUser!.uid}');
+      await storageRef.putFile(_imageFile!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // AppBar'ın arka plan rengini şeffaf yap
-        elevation: 0, // AppBar'ın gölgesini kaldır
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -109,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         title: Text('Profil'),
       ),
-      backgroundColor: Color(0xffB81736), // Scaffold'ın arka plan rengini gradient olarak ayarla
+      backgroundColor: Color(0xffB81736),
       body: SingleChildScrollView(
         child: Container(
           decoration: BoxDecoration(
@@ -125,10 +145,16 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 80,
-                  backgroundImage: AssetImage('assets/profile_image.png'),
+                SizedBox(height: 40),
+                GestureDetector(
+                  onTap: _getImage,
+                  child: CircleAvatar(
+                    radius: 80,
+                    backgroundImage: FileImage(File('dosya_yolu')),
+                  ),
+
                 ),
                 SizedBox(height: 20),
                 ProfileInfo(
@@ -140,6 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     });
                   },
                 ),
+                SizedBox(height: 16),
                 ProfileInfo(
                   label: 'Telefon Numarası',
                   value: _phoneController.text,
@@ -149,6 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     });
                   },
                 ),
+                SizedBox(height: 16),
                 ProfileInfo(
                   label: 'E-mail',
                   value: _emailController.text,
@@ -168,10 +196,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(height: 20),
                 GestureDetector(
                   onTap: () {
-                    // Ürünlerim sayfasına git
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>UrunlerimSayfasi()),
+                      MaterialPageRoute(
+                          builder: (context) => UrunlerimSayfasi()),
                     );
                   },
                   child: Container(
@@ -184,12 +212,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Center(
                       child: Text(
                         'Ürünlerim',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 85),
               ],
             ),
           ),
@@ -217,7 +246,7 @@ class ProfileInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 33),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

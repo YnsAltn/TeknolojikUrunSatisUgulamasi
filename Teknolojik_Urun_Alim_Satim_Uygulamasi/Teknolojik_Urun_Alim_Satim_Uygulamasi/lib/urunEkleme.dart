@@ -202,15 +202,15 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: Text('Ürün Ekleme')),
+        title: Center(child: Text('Ürün Ekleme         ')),
         backgroundColor: Color(0xffB10000),
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB81736),
-              Color(0xff281537),
+              Color(0x662549),
+              Color(0xAE445A),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -341,7 +341,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
                         icon: Icon(Icons.photo_library),
                         label: Text('Galeriden Resim Seç'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
+                          backgroundColor: Colors.orange,
                         ),
                       ),
                     ),
@@ -352,7 +352,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
                         icon: Icon(Icons.camera_alt),
                         label: Text('Kamera ile Resim Çek'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
+                          backgroundColor: Colors.orange,
                         ),
                       ),
                     ),
@@ -399,7 +399,7 @@ class _UrunEklemeFormuState extends State<UrunEklemeFormu> {
                   onPressed: _submitForm,
                   child: Text('Ürün Ekle'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: Colors.orange,
                   ),
                 ),
               ],
